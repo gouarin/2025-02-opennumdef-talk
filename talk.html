@@ -217,7 +217,6 @@ Pierre Matalon
 <ul>
 <li>Add flexibility in container library dependencies</li>
 <li>Transparent for field usage</li>
-<li>Increase the performance (around 10%)</li>
 <li>Two available implementations : <code>xtensor</code> and <code>Eigen</code></li>
 <li>In a near future, <code>Kokkos</code> implementation will be provided</li>
 </ul>
@@ -225,12 +224,12 @@ Pierre Matalon
 <section id="algebra-of-sets" class="slide level2">
 <h2>Algebra of sets</h2>
 <p>The algebra is not complete in samurai.</p>
-<p>For example, it’s not possible to write</p>
+<p>For example, it is not possible to write</p>
 <div class="my-4">
 <div class="sourceCode" id="cb1"><pre class="sourceCode numberSource cpp number-lines code-with-copy"><code class="sourceCode cpp"><span id="cb1-1"><a href=""></a><span class="kw">auto</span> set <span class="op">=</span> translation<span class="op">(</span>intersection<span class="op">(</span>mesh1<span class="op">,</span> mesh2<span class="op">),</span> <span class="op">{</span><span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">});</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>A comprehensive rewrite of the system is underway to address these limitations.</p>
-<p>With this new implementation, we can write :</p>
+<p>With this new implementation, we can write:</p>
 <div class="my-4">
 <div class="sourceCode" id="cb2"><pre class="sourceCode numberSource cpp number-lines code-with-copy"><code class="sourceCode cpp"><span id="cb2-1"><a href=""></a><span class="kw">auto</span> set <span class="op">=</span> translate<span class="op">(</span>intersection<span class="op">(</span>translate<span class="op">(</span>mesh1<span class="op">,</span> <span class="op">{-</span><span class="dv">2</span><span class="op">}).</span>on<span class="op">(</span><span class="dv">4</span><span class="op">),</span></span>
 <span id="cb2-2"><a href=""></a>                                  translate<span class="op">(</span>mesh2<span class="op">,</span>  <span class="op">{</span><span class="dv">2</span><span class="op">}).</span>on<span class="op">(</span><span class="dv">3</span><span class="op">)),</span></span>
@@ -239,6 +238,8 @@ Pierre Matalon
 </section>
 <section id="load-balancing" class="slide level2">
 <h2>Load balancing</h2>
+<p>The goal is to evenly divide the workload amongst processors.</p>
+<p>Mesh parts (and associated data) must be exchanged between neighbours.</p>
 <div class="row text-center">
 <div class="col-6 mx-auto">
 <div class="quarto-figure quarto-figure-center">
@@ -258,16 +259,18 @@ Pierre Matalon
 </div>
 </div>
 <div class="text-center color">
-<p>Loïc Strafella work</p>
+<p>Loïc Strafella’s work</p>
 </div>
-</section>
-<section class="slide level2">
-
 <!-- ::::{.center-page-vertically} -->
-<p><strong>What was achieved ?</strong></p>
+</section>
+<section id="load-balancing-1" class="slide level2">
+<h2>Load balancing</h2>
+<p><br> <strong>What was achieved?</strong></p>
+<!--
+- Possibility to exchange any part of a mesh with its neighbors
+- Update the sub domains and their fields according to this new rearrangement
+-->
 <ul>
-<li>Possibility to exchange any part of a mesh with its neighbors</li>
-<li>Update the sub domains and their fields according to this new rearrangement</li>
 <li>Load balancing using different algorithms
 <ul>
 <li>Morton curve</li>
@@ -275,15 +278,15 @@ Pierre Matalon
 <li>Diffusion algorithm</li>
 </ul></li>
 </ul>
-<p><strong>What remains ?</strong></p>
+<p><strong>What remains?</strong></p>
 <ul>
-<li>All the techniques previously used are based on a cell view</li>
+<li>All the techniques previously used are based on a exchanging cells</li>
 <li>Understand the differences between this view and an interval view</li>
 <li>Try various strategies and find a <em>generic</em> criteria to achieve good load balancing <!-- :::: --></li>
 </ul>
 </section>
-<section id="flux-reconstruction" class="slide level2">
-<h2>Flux reconstruction</h2>
+<section id="flux-computation-at-the-finest-level" class="slide level2">
+<h2>Flux computation at the finest level</h2>
 <div class="text-center">
 <div>
 <video data-autoplay="" width="70%" src="videos/burgers/MRA_upwind_without_portion-min_1-max_12-eps_0.01-reg_0.mp4">
@@ -293,8 +296,8 @@ Pierre Matalon
 <p>without: <span class="math inline">\(\epsilon = 1e-2\)</span>, <span class="math inline">\(\underline{\ell} = 2\)</span>, <span class="math inline">\(\bar{\ell} = 12\)</span></p>
 </div>
 </section>
-<section id="flux-reconstruction-1" class="slide level2">
-<h2>Flux reconstruction</h2>
+<section id="flux-computation-at-the-finest-level-1" class="slide level2">
+<h2>Flux computation at the finest level</h2>
 <div class="text-center">
 <div>
 <video data-autoplay="" width="70%" src="videos/burgers/MRA_upwind_with_portion-min_1-max_12-eps_0.01-reg_0.mp4">
@@ -304,33 +307,45 @@ Pierre Matalon
 <p>with: <span class="math inline">\(\epsilon = 1e-2\)</span>, <span class="math inline">\(\underline{\ell} = 2\)</span>, <span class="math inline">\(\bar{\ell} = 12\)</span></p>
 </div>
 </section>
-<section id="flux-reconstruction-2" class="slide level2">
-<h2>Flux reconstruction</h2>
+<section id="flux-computation-at-the-finest-level-2" class="slide level2">
+<h2>Flux computation at the finest level</h2>
 <div class="row align-items-center">
 <div class="col-6 text-center">
 <video data-autoplay="" src="videos/portions/portion.mp4">
 </video></div>
 <div class="col">
-<p><strong>What was achieved ?</strong></p>
+<p><strong>What was achieved?</strong></p>
 <ul>
-<li>Implementation of an algorithm which can reconstruct the solution anywhere
+<li>Implementation of a general algorithm which can reconstruct the solution at upper/lower levels
 <ul>
-<li>used for flux reconstruction</li>
-<li>used for field transfers</li>
+<li>used for accurate flux computation</li>
+<li>used for transferring a field from one mesh to another</li>
 <li>used to reconstruct the solution at the finest level</li>
 </ul></li>
 </ul>
-<p><strong>What remains ?</strong></p>
+<p><strong>What remains?</strong></p>
 <ul>
-<li>Flux reconstruction activated by the user</li>
+<li>More complicated in higher dimensions…</li>
+<li>Option to de/activate the flux computation at the finest level</li>
 <li>Fix the graduation according to the prediction order</li>
-<li>Improve the linear coefficients computation and storage by using an <code>unordered_map</code></li>
 </ul>
 </div>
 </div>
 </section>
-<section id="optimization" class="slide level2">
-<h2>Optimization</h2>
+<section id="performance-optimization" class="slide level2">
+<h2>Performance optimization</h2>
+<div class="row align-items-center">
+<div class="col-6 text-center">
+<p><strong>2 new recruits:</strong> Sébastien Dubois and Alexandre Hoffmann <img src="figures/recruits.webp"></p>
+</div>
+<div class="col">
+<ul>
+<li>xtensor</li>
+<li>changes in internal data structures and algorithms</li>
+<li>vectorization / batch processing</li>
+</ul>
+</div>
+</div>
 </section>
 <section id="packaging" class="slide level2">
 <h2>Packaging</h2>
@@ -348,21 +363,23 @@ Pierre Matalon
 <div class="col-5">
 <p><img src="https://media.giphy.com/media/crBFPTqW4U2YM/giphy.gif?cid=ecf05e47tljwhuz2z7a8xxn8gryehs5t8ce6xh1qmso7g6je&amp;ep=v1_gifs_search&amp;rid=giphy.gif&amp;ct=g"></p>
 </div>
-<div class="col fragment">
-<p>This raises a number of questions</p>
+<div class="col">
+<p><strong>It’s coming!</strong></p>
+<p>… but some issues remain:</p>
 <ul>
-<li>How to select a list of fields in a restart file ?</li>
-<li>How to give them back to the user ?</li>
-<li>Can we have a generic output for restart and plot ?</li>
-<li>Is it convenient to have post processing scripts ?</li>
+<li>How to select a list of fields in a restart file?</li>
+<li>How to give them back to the user?</li>
+<li>Can we have a generic output for restart and plot?</li>
+<li>Is it convenient to have post processing scripts?</li>
 </ul>
 </div>
 </div>
 </section>
-<section id="a-dual-splittingimex-strategy-for-stiff-pdes" class="slide level2 fs-5">
-<h2>A dual Splitting/IMEX strategy for stiff PDEs</h2>
+<section id="samuraiponio" class="slide level2 fs-5">
+<h2>Samurai/ponio</h2>
 <div class="row fs-6 align-items-center">
 <div class="col-6">
+<p>An IMEX strategy for stiff PDEs:</p>
 <p>Belousov-Zhabotinsky (very stiff source - 3 eq) <span class="math display">\[
 \left\{
 \begin{aligned}
@@ -383,18 +400,6 @@ qa
 <li>No boundary condition problems</li>
 <li>Same computational good properties</li>
 </ul>
-<div title="Simulation with ponio / samurai">
-<div class="callout callout-important no-icon callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<p><strong>Simulation with ponio / samurai</strong></p>
-</div>
-<div class="callout-content">
-
-</div>
-</div>
-</div>
-</div>
 </div>
 <div class="col-6 text-center">
 <div class="text-center mt-0">
@@ -406,19 +411,38 @@ qa
 </section>
 <section id="nasa-roadmap-covering-the-five-projects" class="slide level2">
 <h2>NASA Roadmap covering the five projects</h2>
-<p><strong>Mandatory</strong></p>
+<p><strong>Requested</strong></p>
 <ul>
-<li>Distinguish between a scalar field and a vector field.</li>
-<li>Implement scaling according to spatial directions</li>
-<li>Restart implementation</li>
+<li>Flux computation at the finest level</li>
+<li>Restart</li>
 <li>Sequential optimizations</li>
-<li>Load balancing strategy</li>
-<li>Various finite volume scheme available out of the box (MUSCL, rusanov, HLL, …) with or without flux reconstruction</li>
+<li>Load balancing</li>
+<li>Various finite volume schemes available out of the box (MUSCL, Rusanov, HLL, …)</li>
+<li>Monotony-preserving prediction (MUSCL?)</li>
+<li>Specific scaling according to the spatial direction</li>
+<li>Distinguish between a scalar field and a vector field</li>
 </ul>
-<p><strong>Optional</strong></p>
+<p><strong>Nice-to-have</strong></p>
 <ul>
 <li>Post-processing scripts</li>
 <li>Problem greater than 3 dimensions (e.g.&nbsp;plasma problems)</li>
+</ul>
+</section>
+<section id="ponio" class="slide level2">
+<h2>ponio</h2>
+<p><strong>What you can use now?</strong></p>
+<ul>
+<li>A large collection of explicit and diagonally implicit Runge-Kutta methods with adaptive time step</li>
+<li>Splitting methods (Lie/Strang)</li>
+<li>Some extended stability methods (RKC, ROCK2, ROCK4 and RKL), including adaptive time step for ROCK 2 and 4</li>
+<li>ImEx strategy with PIROCK (see BZ example)</li>
+</ul>
+<p><strong>What is planned?</strong></p>
+<ul>
+<li>Adding adaptive time steps to PIROCK (already available in ROCK2 and ROCK4)</li>
+<li>Adaptive Strang method</li>
+<li>Adding projection operator between stages of RK method (for two-phase flow simulations)</li>
+<li>Exploring time-space strategies for asymptotic preserving schemes, or HLL scheme (for plasma project)</li>
 </ul>
 
 </section>

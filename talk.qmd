@@ -23,7 +23,6 @@ footer: Journées OpenNumDef - <img width="5%" src="figures/by-sa.png"/> - 13 an
 
 - Add flexibility in container library dependencies
 - Transparent for field usage
-- Increase the performance (around 10%)
 - Two available implementations : `xtensor` and `Eigen`
 - In a near future, `Kokkos` implementation will be provided
 
@@ -31,7 +30,7 @@ footer: Journées OpenNumDef - <img width="5%" src="figures/by-sa.png"/> - 13 an
 
 The algebra is not complete in samurai.
 
-For example, it's not possible to write
+For example, it is not possible to write
 
 :::{.my-4}
 ```{.cpp}
@@ -41,7 +40,7 @@ auto set = translation(intersection(mesh1, mesh2), {1, 0});
 
 A comprehensive rewrite of the system is underway to address these limitations.
 
-With this new implementation, we can write :
+With this new implementation, we can write:
 
 :::{.my-4}
 ```{.cpp}
@@ -53,6 +52,10 @@ auto set = translate(intersection(translate(mesh1, {-2}).on(4),
 
 ## Load balancing
 
+The goal is to evenly divide the workload amongst processors.
+
+Mesh parts (and associated data) must be exchanged between neighbours.
+
 :::{.row .text-center}
 ::::{.col-6 .mx-auto}
 ![Load balancing using Morton curve](./figures/morton_6MPI_example.png)
@@ -63,30 +66,34 @@ auto set = translate(intersection(translate(mesh1, {-2}).on(4),
 :::
 
 :::{.text-center .color}
-Loïc Strafella work
+Loïc Strafella's work
 :::
-
-----
 
 <!-- ::::{.center-page-vertically} -->
 
-**What was achieved ?**
+## Load balancing
 
+<br/>
+**What was achieved?**
+
+<!--
 - Possibility to exchange any part of a mesh with its neighbors
 - Update the sub domains and their fields according to this new rearrangement
+-->
+
 - Load balancing using different algorithms
   - Morton curve
   - Hilbert curve
   - Diffusion algorithm
 
-**What remains ?**
+**What remains?**
 
-- All the techniques previously used are based on a cell view
+- All the techniques previously used are based on a exchanging cells
 - Understand the differences between this view and an interval view
 - Try various strategies and find a *generic* criteria to achieve good load balancing
 <!-- :::: -->
 
-## Flux reconstruction
+## Flux computation at the finest level
 
 :::{.text-center}
 <div>
@@ -98,7 +105,7 @@ Loïc Strafella work
 without: $\epsilon = 1e-2$, $\underline{\ell} = 2$, $\bar{\ell} = 12$
 :::
 
-## Flux reconstruction
+## Flux computation at the finest level
 
 :::{.text-center}
 <div>
@@ -110,7 +117,7 @@ without: $\epsilon = 1e-2$, $\underline{\ell} = 2$, $\bar{\ell} = 12$
 with: $\epsilon = 1e-2$, $\underline{\ell} = 2$, $\bar{\ell} = 12$
 :::
 
-## Flux reconstruction
+## Flux computation at the finest level
 
 :::{.row .align-items-center}
 ::::{.col-6 .text-center}
@@ -118,22 +125,37 @@ with: $\epsilon = 1e-2$, $\underline{\ell} = 2$, $\bar{\ell} = 12$
 ::::
 
 ::::{.col}
-**What was achieved ?**
+**What was achieved?**
 
-- Implementation of an algorithm which can reconstruct the solution anywhere
-  - used for flux reconstruction
-  - used for field transfers
+- Implementation of a general algorithm which can reconstruct the solution at upper/lower levels
+  - used for accurate flux computation
+  - used for transferring a field from one mesh to another
   - used to reconstruct the solution at the finest level
 
-**What remains ?**
+**What remains?**
 
-- Flux reconstruction activated by the user
+- More complicated in higher dimensions...
+- Option to de/activate the flux computation at the finest level
 - Fix the graduation according to the prediction order
-- Improve the linear coefficients computation and storage by using an `unordered_map`
 ::::
 :::
 
-## Optimization
+## Performance optimization
+
+:::{.row .align-items-center}
+::::{.col-6 .text-center}
+**2 new recruits:** Sébastien Dubois and Alexandre Hoffmann
+<img src="figures/recruits.webp"/>
+::::
+
+::::{.col}
+
+- xtensor
+- changes in internal data structures and algorithms
+- vectorization / batch processing
+::::
+:::
+
 
 ## Packaging
 
@@ -155,21 +177,25 @@ In the next few months, we will provide a way to install it through these packag
 ::::{.col-5}
 <img src="https://media.giphy.com/media/crBFPTqW4U2YM/giphy.gif?cid=ecf05e47tljwhuz2z7a8xxn8gryehs5t8ce6xh1qmso7g6je&ep=v1_gifs_search&rid=giphy.gif&ct=g"/>
 ::::
-::::{.col .fragment}
-This raises a number of questions
+::::{.col}
+**It's coming!**
 
-- How to select a list of fields in a restart file ?
-- How to give them back to the user ?
-- Can we have a generic output for restart and plot ?
-- Is it convenient to have post processing scripts ?
+... but some issues remain:
+
+- How to select a list of fields in a restart file?
+- How to give them back to the user?
+- Can we have a generic output for restart and plot?
+- Is it convenient to have post processing scripts?
 ::::
 :::
 
-## A dual Splitting/IMEX strategy for stiff PDEs {.fs-5}
+## Samurai/ponio {.fs-5}
 
 :::{.row .fs-6 .align-items-center}
 
 ::::{.col-6}
+An IMEX strategy for stiff PDEs:
+
 Belousov-Zhabotinsky (very stiff source - 3 eq)
 $$
 \left\{
@@ -191,8 +217,6 @@ $$
 - No boundary condition problems
 - Same computational good properties
 
-:::{.callout-important icon=false title="Simulation with ponio / samurai"}
-:::
 ::::
 ::::{.col-6 .text-center}
 :::{.text-center .mt-0}
@@ -204,16 +228,34 @@ $\epsilon = 1e-3$, $\underline{\ell} = 2$, $\bar{\ell} = 10$
 
 ## NASA Roadmap covering the five projects
 
-**Mandatory**
+**Requested**
 
-- Distinguish between a scalar field and a vector field.
-- Implement scaling according to spatial directions
-- Restart implementation
+- Flux computation at the finest level
+- Restart
 - Sequential optimizations
-- Load balancing strategy
-- Various finite volume scheme available out of the box (MUSCL, rusanov, HLL, ...) with or without flux reconstruction
+- Load balancing
+- Various finite volume schemes available out of the box (MUSCL, Rusanov, HLL, ...)
+- Monotony-preserving prediction (MUSCL?)
+- Specific scaling according to the spatial direction
+- Distinguish between a scalar field and a vector field
 
-**Optional**
+**Nice-to-have**
 
 - Post-processing scripts
 - Problem greater than 3 dimensions (e.g. plasma problems)
+
+## ponio
+
+**What you can use now?**
+
+- A large collection of explicit and diagonally implicit Runge-Kutta methods with adaptive time step
+- Splitting methods (Lie/Strang)
+- Some extended stability methods (RKC, ROCK2, ROCK4 and RKL), including adaptive time step for ROCK 2 and 4
+- ImEx strategy with PIROCK (see BZ example)
+
+**What is planned?**
+
+- Adding adaptive time steps to PIROCK (already available in ROCK2 and ROCK4)
+- Adaptive Strang method
+- Adding projection operator between stages of RK method (for two-phase flow simulations)
+- Exploring time-space strategies for asymptotic preserving schemes, or HLL scheme (for plasma project)
